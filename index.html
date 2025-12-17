@@ -1,0 +1,32 @@
+<h2>動画埋め込みテスト</h2>
+<h2>バキ童ぶぶか紹介動画</h2>
+
+<button id="toggleVideo" type="button">動画を表示</button>
+<div id="videoArea" style="max-width:800px; margin-top:12px;"></div>
+
+<script>
+  const btn = document.getElementById("toggleVideo");
+  const area = document.getElementById("videoArea");
+
+  let shown = false;
+
+  btn.addEventListener("click", () => {
+    shown = !shown;
+
+    if (shown) {
+      area.innerHTML = `
+        <iframe
+          width="100%" height="450"
+          src="https://www.youtube.com/embed/cCe9MoTRFTQ"
+          title="YouTube video player"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+      `;
+      btn.textContent = "動画を隠す";
+    } else {
+      area.innerHTML = ""; // iframeを消す（再生も止まる）
+      btn.textContent = "動画を表示";
+    }
+  });
+</script>
