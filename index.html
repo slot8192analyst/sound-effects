@@ -1,32 +1,117 @@
-<h2>動画埋め込みテスト</h2>
-<h2>バキ童ぶぶか紹介動画</h2>
-
-<button id="toggleVideo" type="button">動画を表示</button>
-<div id="videoArea" style="max-width:800px; margin-top:12px;"></div>
-
-<script>
-  const btn = document.getElementById("toggleVideo");
-  const area = document.getElementById("videoArea");
-
-  let shown = false;
-
-  btn.addEventListener("click", () => {
-    shown = !shown;
-
-    if (shown) {
-      area.innerHTML = `
-        <iframe
-          width="100%" height="450"
-          src="https://www.youtube.com/embed/cCe9MoTRFTQ"
-          title="YouTube video player"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen></iframe>
-      `;
-      btn.textContent = "動画を隠す";
-    } else {
-      area.innerHTML = ""; // iframeを消す（再生も止まる）
-      btn.textContent = "動画を表示";
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SE Buttons</title>
+  <style>
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 96px);
+      gap: 12px;
     }
-  });
-</script>
+    .audio-btn{
+      width:96px;height:96px;
+      padding:0;border:0;background:transparent;
+      border-radius:12px; overflow:hidden;
+      display:grid; place-items:center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      cursor:pointer;
+    }
+    .audio-btn img{
+      width:100%; height:100%;
+      object-fit:cover;
+      display:block;
+      pointer-events:none;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+    .audio-btn.is-playing{
+      outline:3px solid #2f7cff;
+      outline-offset:2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="grid">
+    <button class="audio-btn" data-src="./media/a.mp3" aria-label="SE A">
+      <img src="./img/blue.png" alt="">
+    </button>
+    <button class="audio-btn" data-src="./media/b.mp3" aria-label="SE B">
+      <img src="./img/orange.png" alt="">
+    </button>
+    <button class="audio-btn" data-src="./media/c.mp3" aria-label="SE C">
+      <img src="./img/white.png" alt="">
+    </button>
+    <button class="audio-btn" data-src="./media/d.mp3" aria-label="SE D">
+      <img src="./img/pink.png" alt="">
+    </button>
+    <button class="audio-btn" data-src="./media/e.mp3" aria-label="SE E">
+      <img src="./img/yellow.png" alt="">
+    </button>
+  </div>
+
+  <audio id="player" preload="metadata" playsinline></audio>
+
+  <script>
+    const player = document.getElementById('player');
+    const buttons = [...document.querySelectorAll('.audio-btn')];
+
+    let currentBtn = null;
+
+    function setPlayingUI(btn) {
+      buttons.forEach(b => b.classList.toggle('is-playing', b === btn));
+    }
+    function clearUI() {
+      buttons.forEach(b => b.classList.remove('is-playing'));
+    }
+
+    async function playSE(btn) {
+      const src = btn.dataset.src;
+
+      // いったん止めて巻き戻し（同じ音でも毎回最初から鳴らす）
+      player.pause();
+      try { player.currentTime = 0; } catch (_) {}
+
+      // ソース切替（同じsrcでも確実に「最初から」を狙って設定し直す）
+      if (player.src !== new URL(src, location.href).href) {
+        player.src = src;
+      } else {
+        // 同じsrcの場合でも挙動を安定させたいなら load() でリセット
+        player.load();
+      }
+
+      // iPhone対策：タップイベント内でplayを呼ぶ
+      await player.play();
+
+      currentBtn = btn;
+      setPlayingUI(btn);
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await playSE(btn);
+        } catch (e) {
+          console.error(e);
+          alert('再生できませんでした。ファイルパスや端末の設定をご確認ください。');
+        }
+      });
+    });
+
+    player.addEventListener('ended', () => {
+      // 再生が終わったらハイライト解除（任意）
+      clearUI();
+      currentBtn = null;
+    });
+
+    player.addEventListener('error', () => {
+      clearUI();
+      currentBtn = null;
+    });
+  </script>
+
+</body>
+</html>
